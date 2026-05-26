@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrbitEdge Trips [Trial] — by Prathibha G Naik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sand:#F5ECD7;--earth:#C8A96E;--forest:#2D4A3E;--moss:#4A7C6B;--sky:#87CEEB;
+  --deep:#1A2E28;--cream:#FEFAF3;--rust:#C0622F;--text:#1C2B26;--muted:#6B8178;
+  --white:#FFFFFF;--border:#DDD5C0;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;font-weight:300;background:var(--cream);color:var(--text);min-height:100vh}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex}
+
+/* ── AUTH SCREEN ── */
+#auth-screen{
+  flex-direction:row;
+  background:var(--deep);
+}
+.auth-visual{
+  flex:1;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,var(--forest) 0%,var(--deep) 100%);
+  display:flex;flex-direction:column;justify-content:flex-end;padding:3rem;
+}
+.auth-visual::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='400' height='400' viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.04)' stroke-width='1'%3E%3Ccircle cx='200' cy='200' r='80'/%3E%3Ccircle cx='200' cy='200' r='140'/%3E%3Ccircle cx='200' cy='200' r='200'/%3E%3Ccircle cx='200' cy='200' r='260'/%3E%3C/g%3E%3C/svg%3E") center/cover;
+}
+.auth-tagline{
+  position:relative;z-index:1;
+  font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3.5rem);
+  font-weight:900;color:var(--white);line-height:1.1;margin-bottom:1rem;
+}
+.auth-tagline span{color:var(--earth)}
+.auth-sub{position:relative;z-index:1;color:rgba(255,255,255,0.5);font-size:1rem;line-height:1.6}
+
+.auth-panel{
+  width:min(480px,100%);background:var(--cream);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:3rem 3.5rem;overflow-y:auto;
+}
+.auth-logo{
+  font-family:'Playfair Display',serif;font-weight:700;font-size:1.4rem;
+  color:var(--forest);margin-bottom:2.5rem;display:flex;align-items:center;gap:0.5rem;
+}
+.auth-logo::before{content:'✦';color:var(--earth);font-size:1rem}
+
+.tab-switcher{display:flex;background:var(--sand);border-radius:10px;padding:4px;margin-bottom:2rem}
+.tab-btn{
+  flex:1;padding:0.6rem;border:none;background:transparent;
+  font-family:'Outfit',sans-serif;font-size:0.875rem;font-weight:500;
+  color:var(--muted);border-radius:7px;cursor:pointer;transition:all 0.2s;
+}
+.tab-btn.active{background:var(--white);color:var(--forest);box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+
+.auth-form{display:flex;flex-direction:column;gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:0.4rem}
+.form-group label{font-size:0.8rem;font-weight:500;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase}
+.form-group input{
+  padding:0.875rem 1rem;border:1.5px solid var(--border);
+  border-radius:10px;font-family:'Outfit',sans-serif;font-size:0.95rem;
+  background:var(--white);color:var(--text);outline:none;transition:border-color 0.2s;
+}
+.form-group input:focus{border-color:var(--moss)}
+.form-hint{font-size:0.75rem;color:var(--muted);margin-top:0.2rem}
+
+.auth-btn{
+  margin-top:0.5rem;padding:1rem;border:none;border-radius:10px;
+  background:var(--forest);color:var(--white);font-family:'Outfit',sans-serif;
+  font-size:1rem;font-weight:500;cursor:pointer;transition:background 0.2s,transform 0.15s;
+}
+.auth-btn:hover{background:var(--moss);transform:translateY(-1px)}
+
+.auth-divider{text-align:center;font-size:0.8rem;color:var(--muted);margin:0.5rem 0}
+
+/* ── MAIN APP ── */
+#app-screen{flex-direction:column;background:var(--cream)}
+
+/* TOPBAR */
+.topbar{
+  background:var(--deep);padding:1rem 5vw;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+}
+.topbar-logo{font-family:'Playfair Display',serif;font-weight:700;color:var(--white);font-size:1.2rem;display:flex;align-items:center;gap:0.4rem}
+.topbar-logo span{color:var(--earth)}
+.user-pill{
+  display:flex;align-items:center;gap:0.5rem;
+  background:rgba(255,255,255,0.1);border-radius:999px;
+  padding:0.4rem 1rem 0.4rem 0.4rem;cursor:pointer;
+}
+.user-avatar{
+  width:28px;height:28px;border-radius:50%;background:var(--earth);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.75rem;font-weight:600;color:var(--white);
+}
+.user-name{font-size:0.85rem;color:rgba(255,255,255,0.85)}
+.logout-btn{background:none;border:none;color:var(--earth);font-size:0.75rem;cursor:pointer;margin-left:0.5rem;font-family:'Outfit',sans-serif}
+
+/* HERO BAND */
+.hero-band{
+  background:linear-gradient(135deg,var(--forest) 0%,var(--deep) 100%);
+  padding:3rem 5vw 5rem;position:relative;overflow:hidden;
+}
+.hero-band::after{
+  content:'';position:absolute;bottom:-2px;left:0;right:0;height:60px;
+  background:var(--cream);clip-path:ellipse(55% 100% at 50% 100%);
+}
+.hero-band h1{
+  font-family:'Playfair Display',serif;font-weight:900;
+  font-size:clamp(2rem,5vw,3.5rem);color:var(--white);line-height:1.15;
+  margin-bottom:0.5rem;
+}
+.hero-band h1 em{color:var(--earth);font-style:normal}
+.hero-band p{color:rgba(255,255,255,0.55);font-size:1rem;margin-top:0.25rem}
+
+/* MAIN CONTENT */
+.app-content{padding:2.5rem 5vw 4rem;max-width:1100px;margin:0 auto;width:100%}
+
+/* SECTION LABELS */
+.sec-label{
+  font-size:0.7rem;font-weight:600;letter-spacing:0.15em;
+  text-transform:uppercase;color:var(--earth);margin-bottom:0.75rem;
+}
+.sec-title{
+  font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;
+  color:var(--deep);margin-bottom:1.5rem;
+}
+
+/* DESTINATIONS */
+.dest-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
+  gap:1rem;margin-bottom:3rem;
+}
+.dest-card{
+  background:var(--white);border:2px solid var(--border);
+  border-radius:16px;overflow:hidden;cursor:pointer;
+  transition:all 0.25s;position:relative;
+}
+.dest-card:hover{transform:translateY(-4px);border-color:var(--moss);box-shadow:0 8px 24px rgba(45,74,62,0.15)}
+.dest-card.selected{border-color:var(--forest);background:var(--forest)}
+.dest-img{
+  height:110px;background:var(--sand);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.5rem;position:relative;overflow:hidden;
+}
+.dest-img .overlay{
+  position:absolute;inset:0;opacity:0;
+  background:var(--forest);transition:opacity 0.25s;
+  display:flex;align-items:center;justify-content:center;
+}
+.dest-card.selected .overlay{opacity:0.7}
+.dest-check{font-size:1.5rem;color:var(--white)}
+.dest-info{padding:0.75rem}
+.dest-name{font-weight:600;font-size:0.95rem;color:var(--text)}
+.dest-card.selected .dest-name{color:var(--white)}
+.dest-state{font-size:0.75rem;color:var(--muted);margin-top:2px}
+.dest-card.selected .dest-state{color:rgba(255,255,255,0.6)}
+
+/* DURATION */
+.dur-grid{display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:3rem}
+.dur-chip{
+  padding:0.65rem 1.4rem;border:1.5px solid var(--border);
+  border-radius:999px;cursor:pointer;font-size:0.9rem;font-weight:500;
+  color:var(--muted);background:var(--white);transition:all 0.2s;
+}
+.dur-chip:hover{border-color:var(--moss);color:var(--forest)}
+.dur-chip.selected{background:var(--forest);border-color:var(--forest);color:var(--white)}
+
+/* SUB OPTIONS */
+.sub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-bottom:3rem}
+.sub-card{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:1.5rem}
+.sub-card-title{font-weight:600;font-size:0.875rem;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem}
+.sub-card-title span{font-size:1rem}
+
+.persons-control{display:flex;align-items:center;gap:1rem}
+.per-btn{
+  width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);
+  background:transparent;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--forest);font-weight:600;transition:all 0.2s;
+}
+.per-btn:hover{background:var(--forest);color:var(--white);border-color:var(--forest)}
+.per-count{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--deep);min-width:40px;text-align:center}
+
+.opt-btns{display:flex;flex-direction:column;gap:0.5rem}
+.opt-btn{
+  padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:10px;
+  cursor:pointer;text-align:left;font-family:'Outfit',sans-serif;font-size:0.9rem;
+  color:var(--muted);background:var(--white);transition:all 0.2s;display:flex;align-items:center;gap:0.75rem;
+}
+.opt-btn:hover{border-color:var(--moss)}
+.opt-btn.selected{background:var(--sand);border-color:var(--earth);color:var(--text);font-weight:500}
+.opt-btn .opt-icon{font-size:1.2rem;width:24px;text-align:center}
+
+
+.slot-chip{
+  padding:0.45rem 0.9rem;border:1.5px solid var(--border);border-radius:999px;
+  font-size:0.8rem;font-weight:500;color:var(--muted);background:var(--white);
+  cursor:pointer;transition:all 0.18s;font-family:'Outfit',sans-serif;
+}
+.slot-chip:hover{border-color:var(--moss);color:var(--forest)}
+.slot-chip.booked{background:var(--forest);border-color:var(--forest);color:var(--white);cursor:default}
+.slot-chip.mine{background:var(--earth);border-color:var(--earth);color:var(--white)}
+.booking-tag{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  background:var(--sand);border:1px solid var(--border);border-radius:8px;
+  padding:0.45rem 0.75rem;font-size:0.8rem;color:var(--text);
+}
+.booking-tag .remove-bk{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;padding:0 2px}
+.booking-tag .remove-bk:hover{color:var(--rust)}
+
+
+/* ── TRIAL BANNER ── */
+.trial-banner{
+  background:linear-gradient(90deg,#7C3A00,var(--rust),#C0622F,#7C3A00);
+  background-size:300% 100%;
+  animation:banner-shimmer 6s ease-in-out infinite;
+  color:var(--white);
+  text-align:center;padding:0.55rem 1rem;
+  font-size:0.78rem;font-weight:500;letter-spacing:0.04em;
+  position:relative;z-index:101;
+}
+@keyframes banner-shimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.trial-banner strong{font-weight:700;letter-spacing:0.06em}
+.trial-badge{
+  display:inline-flex;align-items:center;gap:0.35rem;
+  background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);
+  border-radius:999px;padding:0.18rem 0.65rem;font-size:0.72rem;font-weight:700;
+  letter-spacing:0.08em;text-transform:uppercase;margin-left:0.6rem;
+  vertical-align:middle;
+}
+.hero-trial-note{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  background:rgba(200,169,110,0.12);border:1px solid rgba(200,169,110,0.3);
+  border-radius:8px;padding:0.45rem 0.9rem;margin-top:1rem;
+  font-size:0.78rem;color:rgba(255,255,255,0.6);line-height:1.5;
+}
+.hero-trial-note strong{color:var(--earth)}
+.book-trial-note{
+  font-size:0.72rem;color:rgba(255,255,255,0.45);
+  text-align:center;margin-top:0.5rem;letter-spacing:0.03em;
+  font-style:italic;
+}
+
+/* SUMMARY & CTA */
+.summary-bar{
+  background:var(--deep);border-radius:16px;padding:1.5rem 2rem;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
+  margin-bottom:2rem;
+}
+.summary-chips{display:flex;flex-wrap:wrap;gap:0.5rem}
+.s-chip{
+  background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);
+  padding:0.3rem 0.75rem;border-radius:999px;font-size:0.8rem;
+}
+.s-chip.empty{color:rgba(255,255,255,0.3);font-style:italic}
+.book-btn{
+  background:var(--earth);color:var(--white);border:none;
+  padding:0.875rem 2.5rem;border-radius:999px;
+  font-family:'Outfit',sans-serif;font-size:1rem;font-weight:600;
+  cursor:pointer;transition:all 0.2s;white-space:nowrap;
+}
+.book-btn:hover{background:var(--rust);transform:translateY(-1px)}
+.book-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--forest);color:var(--white);padding:1rem 2rem;
+  border-radius:12px;font-size:0.9rem;font-weight:500;z-index:999;
+  transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);box-shadow:0 8px 32px rgba(0,0,0,0.2);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* TAB PANELS */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  #auth-screen{flex-direction:column}
+  .auth-visual{min-height:200px;padding:2rem}
+  .auth-panel{padding:2rem 1.5rem;width:100%}
+  .auth-tagline{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ AUTH SCREEN ═══════════════════════════════════ -->
+<!-- ── TRIAL BANNER ── -->
+<div class="trial-banner">
+  <strong>🧪 TRIAL VERSION — FREE TO EXPLORE</strong>
+  <span class="trial-badge">Beta</span>
+  &nbsp;&nbsp;No trips will be booked · This is a pre-launch test &nbsp;·&nbsp; Creator: Prathibha G Naik
+</div>
+
+<div id="auth-screen" class="screen active">
+  <div class="auth-visual">
+    <div class="auth-tagline">Pack your bags for <span>India's finest</span> escapes.</div>
+    <p class="auth-sub">Handpicked destinations, flexible durations, and every comfort sorted — all in one place.</p>
+  </div>
+  <div class="auth-panel">
+    <div class="auth-logo">OrbitEdge Trips</div>
+
+    <div class="tab-switcher">
+      <button class="tab-btn active" onclick="switchAuthTab('login')">Sign in</button>
+      <button class="tab-btn" onclick="switchAuthTab('register')">Create account</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="tab-login" class="tab-panel active">
+      <div class="auth-form">
+
+        <!-- STEP 1: email + password -->
+        <div id="login-step1">
+          <div class="form-group">
+            <label>Email address</label>
+            <input type="email" id="login-email" placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="login-pass" placeholder="••••••••">
+          </div>
+          <button class="auth-btn" onclick="sendLoginOtp()">Continue →</button>
+          <div class="auth-divider">Don't have an account? <a href="#" onclick="switchAuthTab('register');return false" style="color:var(--forest);font-weight:500">Create one</a></div>
+        </div>
+
+        <!-- STEP 2: OTP verify -->
+        <div id="login-step2" style="display:none">
+          <div class="verify-badge">
+            <span style="font-size:1.5rem">📧</span>
+            <div>
+              <div style="font-weight:600;font-size:0.9rem;color:var(--forest)">Verify your email</div>
+              <div style="font-size:0.78rem;color:var(--muted);margin-top:2px">A 6-digit code was sent to <strong id="login-email-display"></strong></div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:1rem">
+            <label>Verification code</label>
+            <div style="display:flex;gap:0.5rem">
+              <input type="text" id="login-otp" placeholder="_ _ _ _ _ _" maxlength="6"
+                style="letter-spacing:0.3em;font-size:1.1rem;text-align:center;font-weight:600"
+                oninput="this.value=this.value.replace(/\D/g,'')">
+            </div>
+            <div class="form-hint" id="login-otp-hint" style="color:var(--earth)">&#9432; Demo: use code <strong>123456</strong></div>
+          </div>
+          <button class="auth-btn" onclick="doLogin()">Verify &amp; Sign in →</button>
+          <div class="auth-divider"><a href="#" onclick="backToLoginStep1();return false" style="color:var(--muted);font-size:0.85rem">← Change email</a> &nbsp;·&nbsp; <a href="#" onclick="sendLoginOtp();return false" style="color:var(--forest);font-weight:500;font-size:0.85rem">Resend code</a></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="tab-register" class="tab-panel">
+      <div class="auth-form">
+        <div class="form-group">
+          <label>Full name</label>
+          <input type="text" id="reg-name" placeholder="Arjun Sharma">
+        </div>
+        <div class="form-group">
+          <label>Email address</label>
+          <input type="email" id="reg-email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label>Phone number</label>
+          <input type="tel" id="reg-phone" placeholder="+91 98765 43210">
+          <div class="form-hint">Used for booking confirmations & OTP</div>
+        </div>
+        <div class="form-group">
+          <label>Aadhaar card number</label>
+          <input type="text" id="reg-aadhaar" placeholder="XXXX XXXX XXXX" maxlength="14" oninput="fmtAadhaar(this)">
+          <div class="form-hint">Required for identity verification · stored securely</div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="reg-pass" placeholder="Min. 8 characters">
+        </div>
+        <button class="auth-btn" onclick="doRegister()">Create account →</button>
+        <div class="auth-divider">Already have an account? <a href="#" onclick="switchAuthTab('login');return false" style="color:var(--forest);font-weight:500">Sign in</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ APP SCREEN ═══════════════════════════════════ -->
+<div id="app-screen" class="screen">
+
+  <div class="topbar">
+    <div class="topbar-logo">✦ <span>OrbitEdge</span> Trips</div>
+    <div style="display:flex;align-items:center;gap:0.75rem">
+      <div class="user-pill">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div class="user-name" id="user-name-display">Traveller</div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="hero-band">
+    <h1>Where do you want to<br><em>wander next?</em></h1>
+    <p>Pick a place, choose your dates, and let us handle the rest.</p>
+    <div class="hero-trial-note">
+      🧪 <span><strong>Trial mode — completely free.</strong> Explore all features. No trips will be confirmed or charged.</span>
+    </div>
+  </div>
+
+  <div class="app-content">
+
+    <!-- DESTINATIONS -->
+    <div class="sec-label">Step 1 — Choose your destination</div>
+    <div class="sec-title">Popular escapes</div>
+    <div class="dest-grid" id="dest-grid">
+      <!-- filled by JS -->
+    </div>
+
+    <!-- DURATION -->
+    <div class="sec-label">Step 2 — How long?</div>
+    <div class="sec-title">Trip duration</div>
+    <div class="dur-grid" id="dur-grid">
+      <!-- filled by JS -->
+    </div>
+
+    <!-- SUB OPTIONS -->
+    <div class="sec-label">Step 3 — Preferences</div>
+    <div class="sec-title">Customise your trip</div>
+    <div class="sub-grid">
+
+      <!-- Persons -->
+      <div class="sub-card">
+        <div class="sub-card-title"><span>👥</span> Number of travellers</div>
+        <div class="persons-control">
+          <button class="per-btn" onclick="changePerson(-1)">−</button>
+          <div class="per-count" id="person-count">2</div>
+          <button class="per-btn" onclick="changePerson(1)">+</button>
+          <span style="font-size:0.85rem;color:var(--muted)">people</span>
+        </div>
+
+      <!-- Baby Seat -->
+      <div class="sub-card">
+        <div class="sub-card-title"><span>👶</span> Baby seat</div>
+        <div style="margin-bottom:0.85rem;font-size:0.82rem;color:var(--muted);line-height:1.5">
+          Add a safety-certified baby seat for infants &amp; toddlers (0–4 yrs). Provided at the accommodation on arrival.
+        </div>
+        <div class="opt-btns" id="baby-opts">
+          <button class="opt-btn" onclick="pickOpt('babySeat',this,'1 baby seat')"><span class="opt-icon">🪑</span>1 baby seat</button>
+          <button class="opt-btn" onclick="pickOpt('babySeat',this,'2 baby seats')"><span class="opt-icon">🪑</span>2 baby seats</button>
+          <button class="opt-btn" onclick="pickOpt('babySeat',this,'Not needed')"><span class="opt-icon">✕</span>Not needed</button>
+        </div>
+      </div>
+
+      <!-- Stay type -->
+      <div class="sub-card">
+        <div class="sub-card-title"><span>🏕</span> Type of stay</div>
+        <div class="opt-btns" id="stay-opts">
+          <button class="opt-btn" onclick="pickOpt('stay',this,'Tent camping')" style="flex-direction:column;align-items:flex-start;gap:2px">
+            <span style="display:flex;align-items:center;gap:0.75rem"><span class="opt-icon">⛺</span>Tent camping</span>
+            <span style="font-size:0.72rem;color:var(--muted);padding-left:2rem;margin-top:1px">Available in Ooty, Munnar &amp; Gokarna</span>
+          </button>
+          <button class="opt-btn" onclick="pickOpt('stay',this,'Homestay')"><span class="opt-icon">🏡</span>Homestay</button>
+          <button class="opt-btn" onclick="pickOpt('stay',this,'Hotel')"><span class="opt-icon">🏨</span>Hotel</button>
+        </div>
+      </div>
+
+      <!-- Food -->
+      <div class="sub-card">
+        <div class="sub-card-title"><span>🍽</span> Food preference</div>
+        <div class="opt-btns" id="food-opts">
+          <button class="opt-btn" onclick="pickOpt('food',this,'Vegetarian')"><span class="opt-icon">🥦</span>Vegetarian</button>
+          <button class="opt-btn" onclick="pickOpt('food',this,'Non-vegetarian')"><span class="opt-icon">🍗</span>Non-vegetarian</button>
+          <button class="opt-btn" onclick="pickOpt('food',this,'Both options')"><span class="opt-icon">🍱</span>Both options</button>
+        </div>
+      </div>
+
+      <!-- Drinks & Snacks -->
+      <div class="sub-card" style="grid-column:1/-1">
+        <div class="sub-card-title"><span>🛒</span> Add drinks &amp; snacks &nbsp;<span style="font-size:0.7rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(optional &mdash; select as many as you like)</span></div>
+        <div style="display:flex;flex-direction:column;gap:1.25rem">
+          <div>
+            <div style="font-size:0.75rem;font-weight:600;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.6rem">Drinks</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.6rem">
+              <button class="opt-btn bev-item" onclick="toggleBev(this,'Soft drinks')"><span class="opt-icon">🥤</span>Soft drinks</button>
+              <button class="opt-btn bev-item" onclick="toggleBev(this,'Coffee')"><span class="opt-icon">☕</span>Coffee</button>
+              <button class="opt-btn bev-item" onclick="toggleBev(this,'Tea')"><span class="opt-icon">🍵</span>Tea</button>
+              <button class="opt-btn bev-item" onclick="toggleBev(this,'Beer')"><span class="opt-icon">🍺</span>Beer</button>
+              <button class="opt-btn bev-item" onclick="toggleBev(this,'Wine')"><span class="opt-icon">🍷</span>Wine</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.75rem;font-weight:600;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.6rem">Snacks</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.6rem">
+              <button class="opt-btn snack-item" onclick="toggleBev(this,'Chips')"><span class="opt-icon">🍟</span>Chips</button>
+              <button class="opt-btn snack-item" onclick="toggleBev(this,'Samosa')"><span class="opt-icon">🥟</span>Samosa</button>
+              <button class="opt-btn snack-item" onclick="toggleBev(this,'Kachori')"><span class="opt-icon">🫓</span>Kachori</button>
+              <button class="opt-btn snack-item" onclick="toggleBev(this,'Vada Pav')"><span class="opt-icon">🍔</span>Vada Pav</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Play items -->
+      <div class="sub-card" style="grid-column:1/-1">
+        <div class="sub-card-title"><span>🎮</span> Rent play items &nbsp;<span style="font-size:0.7rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(optional &mdash; select as many as you like)</span></div>
+        <div id="play-opts" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:0.6rem">
+          <button class="opt-btn play-item" onclick="togglePlay(this,'Cricket')"><span class="opt-icon">&#127955;</span>Cricket</button>
+          <button class="opt-btn play-item" onclick="togglePlay(this,'Football')"><span class="opt-icon">&#9917;</span>Football</button>
+          <button class="opt-btn play-item" onclick="togglePlay(this,'Basketball')"><span class="opt-icon">&#127936;</span>Basketball</button>
+          <button class="opt-btn play-item" onclick="togglePlay(this,'Frisbee')"><span class="opt-icon">&#129391;</span>Frisbee</button>
+        </div>
+      </div>
+
+      <!-- Charger Booking -->
+      <div class="sub-card" style="grid-column:1/-1">
+        <div class="sub-card-title"><span>🔌</span> Book a shared charger &nbsp;<span style="font-size:0.7rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(optional &mdash; 1-hour slot per passenger)</span></div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem">
+          <button class="opt-btn chrg-type" id="ct-iphone" onclick="toggleChargerType(this,'iPhone')">
+            <span class="opt-icon">&#128241;</span>iPhone <span style="font-size:0.7rem;color:var(--muted);margin-left:4px">(Lightning / USB-C)</span>
+          </button>
+          <button class="opt-btn chrg-type" id="ct-android" onclick="toggleChargerType(this,'Android')">
+            <span class="opt-icon">&#128241;</span>Android <span style="font-size:0.7rem;color:var(--muted);margin-left:4px">(USB-C / Micro)</span>
+          </button>
+          <button class="opt-btn chrg-type" id="ct-laptop" onclick="toggleChargerType(this,'Laptop')">
+            <span class="opt-icon">&#128187;</span>Laptop <span style="font-size:0.7rem;color:var(--muted);margin-left:4px">(USB-C)</span>
+          </button>
+        </div>
+
+        <div id="charger-slots-wrap" style="display:none">
+          <div style="font-size:0.75rem;font-weight:600;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.75rem">
+            Select 1-hour time slot — <span id="charger-pax-label" style="color:var(--earth)"></span>
+          </div>
+          <div id="charger-slots" style="display:flex;flex-wrap:wrap;gap:0.5rem"></div>
+          <div id="charger-bookings" style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem"></div>
+        </div>
+      </div>
+
+
+    </div>
+
+    <!-- SUMMARY + BOOK -->
+    <div class="summary-bar">
+      <div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem">Your selection</div>
+        <div class="summary-chips" id="summary-chips">
+          <span class="s-chip empty">Nothing selected yet</span>
+        </div>
+      </div>
+      <button class="book-btn" id="book-btn" onclick="doBook()" disabled>🧪 Trial Book — No charge</button>
+    </div>
+    <div class="book-trial-note">⚠ This is a trial. No actual booking will be made. For pre-launch testing only.</div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+const DESTINATIONS = [
+  {id:'mysore',name:'Mysore',state:'Karnataka',emoji:'🏰'},
+  {id:'munnar',name:'Munnar',state:'Kerala',emoji:'🌿'},
+  {id:'delhi',name:'Delhi',state:'NCT',emoji:'🕌'},
+  {id:'ooty',name:'Ooty',state:'Tamil Nadu',emoji:'🚂'},
+  {id:'gokarna',name:'Gokarna',state:'Karnataka',emoji:'🏖'},
+];
+const DURATIONS = ['1 Day','2 Days','Weekend','1 Week','1 Month'];
+
+// ── STATE ──
+let state = {
+  user:null,
+  dest:null,
+  duration:null,
+  persons:2,
+  stay:null,
+  food:null,
+  playItems:[],
+  beverages:[],
+  chargerTypes:[],
+  chargerBookings:[],
+  babySeat:null,
+};
+
+// ── INIT ──
+function init(){
+  renderDests(); renderDurs(); updateTentVisibility();
+}
+
+function renderDests(){
+  const g = document.getElementById('dest-grid');
+  g.innerHTML = DESTINATIONS.map(d=>`
+    <div class="dest-card" id="dc-${d.id}" onclick="pickDest('${d.id}')">
+      <div class="dest-img">
+        <span>${d.emoji}</span>
+        <div class="overlay"><span class="dest-check">✓</span></div>
+      </div>
+      <div class="dest-info">
+        <div class="dest-name">${d.name}</div>
+        <div class="dest-state">${d.state}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderDurs(){
+  const g = document.getElementById('dur-grid');
+  g.innerHTML = DURATIONS.map(d=>`
+    <button class="dur-chip" onclick="pickDur(this,'${d}')">${d}</button>
+  `).join('');
+}
+
+// ── AUTH ──
+function switchAuthTab(tab){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register'));
+  });
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-register').classList.toggle('active', tab==='register');
+}
+
+function fmtAadhaar(el){
+  let v = el.value.replace(/\D/g,'').substring(0,12);
+  el.value = v.replace(/(\d{4})(?=\d)/g,'$1 ');
+}
+
+function sendLoginOtp(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  if(!email || !pass){ showToast('Please fill in all fields.'); return; }
+  if(!email.includes('@')){ showToast('Enter a valid email.'); return; }
+  // Simulate sending OTP
+  document.getElementById('login-step1').style.display = 'none';
+  document.getElementById('login-step2').style.display = 'block';
+  document.getElementById('login-email-display').textContent = email;
+  document.getElementById('login-otp').value = '';
+  showToast('📧 Verification code sent to '+email);
+}
+
+function backToLoginStep1(){
+  document.getElementById('login-step2').style.display = 'none';
+  document.getElementById('login-step1').style.display = 'block';
+}
+
+function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const otp   = document.getElementById('login-otp').value.trim();
+  if(otp !== '123456'){ showToast('❌ Invalid code. Use 123456 for this demo.'); return; }
+  const name = email.split('@')[0];
+  // reset verify step for next login
+  document.getElementById('login-step2').style.display = 'none';
+  document.getElementById('login-step1').style.display = 'block';
+  loginUser({name, email});
+}
+
+function doRegister(){
+  const name    = document.getElementById('reg-name').value.trim();
+  const email   = document.getElementById('reg-email').value.trim();
+  const phone   = document.getElementById('reg-phone').value.trim();
+  const aadhaar = document.getElementById('reg-aadhaar').value.replace(/\s/g,'');
+  const pass    = document.getElementById('reg-pass').value;
+  if(!name||!email||!phone||!aadhaar||!pass){ showToast('Please fill in all fields.'); return; }
+  if(!email.includes('@')){ showToast('Enter a valid email.'); return; }
+  if(phone.replace(/\D/g,'').length < 10){ showToast('Enter a valid 10-digit phone number.'); return; }
+  if(aadhaar.length !== 12){ showToast('Aadhaar must be 12 digits.'); return; }
+  if(pass.length < 8){ showToast('Password must be at least 8 characters.'); return; }
+  loginUser({name, email});
+}
+
+function loginUser(user){
+  state.user = user;
+  document.getElementById('user-name-display').textContent = user.name;
+  document.getElementById('user-avatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('auth-screen').classList.remove('active');
+  document.getElementById('app-screen').classList.add('active');
+  showToast('Welcome, '+user.name+'! 🌟');
+}
+
+function doLogout(){
+  state = {user:null,dest:null,duration:null,persons:2,stay:null,food:null,playItems:[],beverages:[],chargerTypes:[],chargerBookings:[],babySeat:null};
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('auth-screen').classList.add('active');
+  resetApp();
+}
+
+function resetApp(){
+  renderDests(); renderDurs();
+  document.getElementById('person-count').textContent = '2';
+  document.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+  state.playItems=[];
+  state.beverages=[];
+  state.chargerTypes=[];
+  state.chargerBookings=[];
+  document.querySelectorAll('.chrg-type').forEach(b=>b.classList.remove('selected'));
+  renderChargerSlots();
+  updateSummary();
+}
+
+
+// ── CHARGER BOOKING ──
+const SLOTS = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM',
+               '1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM',
+               '6:00 PM','7:00 PM','8:00 PM'];
+
+function toggleChargerType(el, type){
+  const idx = state.chargerTypes.indexOf(type);
+  if(idx === -1){ state.chargerTypes.push(type); el.classList.add('selected'); }
+  else { state.chargerTypes.splice(idx,1); el.classList.remove('selected'); }
+  renderChargerSlots();
+  updateSummary();
+}
+
+function renderChargerSlots(){
+  const wrap = document.getElementById('charger-slots-wrap');
+  const slotsEl = document.getElementById('charger-slots');
+  const label = document.getElementById('charger-pax-label');
+  const bkEl = document.getElementById('charger-bookings');
+  if(!state.chargerTypes.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  label.textContent = state.chargerTypes.join(' / ') + ' — choose a slot for each passenger';
+  // booked slots (by all passengers combined)
+  const bookedSlots = state.chargerBookings.map(b=>b.slot);
+  slotsEl.innerHTML = SLOTS.map(s=>{
+    const myBk = state.chargerBookings.find(b=>b.slot===s);
+    const isBooked = bookedSlots.includes(s) && !myBk;
+    const cls = myBk ? 'slot-chip mine' : isBooked ? 'slot-chip booked' : 'slot-chip';
+    const disabled = isBooked ? 'disabled' : '';
+    return `<button class="${cls}" ${disabled} onclick="bookSlot('${s}')">${s}</button>`;
+  }).join('');
+  // show booking tags
+  bkEl.innerHTML = state.chargerBookings.length
+    ? state.chargerBookings.map((b,i)=>
+        `<span class="booking-tag">&#9889; ${b.type} &mdash; ${b.slot} &mdash; Passenger ${b.pax}
+         <button class="remove-bk" onclick="removeBooking(${i})" title="Remove">&#10005;</button></span>`
+      ).join('')
+    : '';
+  updateSummary();
+}
+
+function bookSlot(slot){
+  if(state.chargerBookings.find(b=>b.slot===slot)) return;
+  const pax = state.chargerBookings.filter(b=>b.pax<=state.persons).length + 1;
+  if(pax > state.persons){ showToast('All passengers already have a slot booked.'); return; }
+  const type = state.chargerTypes[0];
+  state.chargerBookings.push({slot, type: state.chargerTypes.join('/'), pax});
+  renderChargerSlots();
+  updateSummary();
+}
+
+function removeBooking(i){
+  state.chargerBookings.splice(i,1);
+  renderChargerSlots();
+  updateSummary();
+}
+
+// ── TENT AVAILABILITY ──
+const TENT_DESTS = ['ooty','munnar','gokarna'];
+
+function updateTentVisibility(){
+  const tentBtn = document.querySelector('#stay-opts .opt-btn:first-child');
+  if(!tentBtn) return;
+  const tentAllowed = TENT_DESTS.includes(state.dest);
+  tentBtn.style.display = tentAllowed ? '' : 'none';
+  // If tent was selected but new dest doesn't support it, clear stay
+  if(!tentAllowed && state.stay === 'Tent camping'){
+    state.stay = null;
+    document.querySelectorAll('#stay-opts .opt-btn').forEach(b=>b.classList.remove('selected'));
+    showToast('⛺ Tent camping is not available in this destination.');
+  }
+}
+
+// ── SELECTIONS ──
+function pickDest(id){
+  state.dest = (state.dest===id)?null:id;
+  document.querySelectorAll('.dest-card').forEach(c=>{
+    c.classList.toggle('selected', c.id==='dc-'+state.dest);
+  });
+  updateTentVisibility();
+  updateSummary();
+}
+
+function pickDur(el, val){
+  state.duration = (state.duration===val)?null:val;
+  document.querySelectorAll('.dur-chip').forEach(c=>c.classList.remove('selected'));
+  if(state.duration) el.classList.add('selected');
+  updateSummary();
+}
+
+function pickOpt(type, el, val){
+  state[type] = (state[type]===val)?null:val;
+  const container = el.closest('.opt-btns');
+  container.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+  if(state[type]) el.classList.add('selected');
+  updateSummary();
+}
+
+function toggleBev(el, val){
+  const idx = state.beverages.indexOf(val);
+  if(idx === -1){ state.beverages.push(val); el.classList.add('selected'); }
+  else { state.beverages.splice(idx,1); el.classList.remove('selected'); }
+  updateSummary();
+}
+
+function togglePlay(el, val){
+  const idx = state.playItems.indexOf(val);
+  if(idx === -1){ state.playItems.push(val); el.classList.add('selected'); }
+  else { state.playItems.splice(idx,1); el.classList.remove('selected'); }
+  updateSummary();
+}
+
+function changePerson(d){
+  state.persons = Math.max(1, Math.min(20, state.persons + d));
+  document.getElementById('person-count').textContent = state.persons;
+  renderChargerSlots();
+  updateSummary();
+}
+
+// ── SUMMARY ──
+function updateSummary(){
+  const chips = document.getElementById('summary-chips');
+  const btn   = document.getElementById('book-btn');
+  const parts = [];
+  const dest = DESTINATIONS.find(d=>d.id===state.dest);
+  if(dest)         parts.push(dest.emoji+' '+dest.name);
+  if(state.duration) parts.push('⏱ '+state.duration);
+  parts.push('👥 '+state.persons+' '+(state.persons===1?'person':'people'));
+  if(state.stay)   parts.push('🏕 '+state.stay);
+  if(state.food)   parts.push('🍽 '+state.food);
+  if(state.babySeat && state.babySeat!=='Not needed') parts.push('👶 '+state.babySeat);
+  if(state.beverages.length) parts.push('🛒 '+state.beverages.join(', '));
+  if(state.chargerBookings.length) parts.push('🔌 '+state.chargerBookings.length+' charger slot'+(state.chargerBookings.length>1?'s':''));
+  if(state.playItems.length) parts.push('🎮 '+state.playItems.join(', '));
+  if(parts.length){
+    chips.innerHTML = parts.map(p=>`<span class="s-chip">${p}</span>`).join('');
+  } else {
+    chips.innerHTML = '<span class="s-chip empty">Nothing selected yet</span>';
+  }
+  const ready = state.dest && state.duration && state.stay && state.food;
+  btn.disabled = !ready;
+}
+
+// ── BOOK ──
+function doBook(){
+  const dest = DESTINATIONS.find(d=>d.id===state.dest);
+  showToast(`🧪 Trial submitted! Trip to ${dest.name} for ${state.persons} ${state.persons===1?'person':'people'} — no actual booking made. Thanks for testing!`);
+}
+
+// ── TOAST ──
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+init();
+</script>
+
+<!-- ── FOOTER ── -->
+<div style="
+  position:relative;z-index:10;
+  background:var(--deep);
+  border-top:1px solid rgba(200,169,110,0.2);
+  padding:2rem 5vw 1.5rem;
+  text-align:center;
+  font-family:'Outfit',sans-serif;
+">
+  <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--earth);margin-bottom:0.4rem">
+    OrbitEdge Trips
+  </div>
+  <div style="font-size:0.78rem;color:rgba(255,255,255,0.35);line-height:2;letter-spacing:0.03em">
+    Designed &amp; Developed by <span style="color:var(--earth);font-weight:500">Prathibha G Naik</span><br>
+    &copy; 2026 Prathibha G Naik. All Rights Reserved.<br>
+    <span style="font-size:0.72rem;color:rgba(255,255,255,0.22);letter-spacing:0.08em;text-transform:uppercase">
+      Under Test &nbsp;·&nbsp; Creator: Prathibha G Naik &nbsp;·&nbsp; Unauthorised reproduction prohibited
+    </span>
+  </div>
+</div>
+
+<!-- ── WATERMARK BADGE ── -->
+<div style="
+  position:fixed;bottom:1.25rem;right:1.25rem;z-index:200;
+  background:var(--deep);
+  border:1px solid rgba(200,169,110,0.4);
+  border-radius:10px;
+  padding:0.45rem 0.85rem;
+  display:flex;flex-direction:column;align-items:flex-end;gap:1px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.35);
+  pointer-events:none;
+">
+  <span style="font-size:0.65rem;color:var(--earth);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;font-family:'Outfit',sans-serif">Under Test</span>
+  <span style="font-size:0.6rem;color:rgba(255,255,255,0.4);font-family:'Outfit',sans-serif;letter-spacing:0.03em">&#169; Prathibha G Naik &nbsp;·&nbsp; All Rights Reserved</span>
+</div>
+
+</body>
+</html>
